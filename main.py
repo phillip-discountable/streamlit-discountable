@@ -6,15 +6,16 @@ from functions.create_supabase_client import create_supabase_client
 from dotenv import load_dotenv
 load_dotenv()
 from streamlit_javascript import st_javascript
+from functions.get_signed_logo_url import get_signed_logo_url
 
 # Konfiguration der Streamlit-Seite
 st.set_page_config(page_title="Rabattoptionen", layout="wide")
 
 # Abrufen der aktuellen URL und Extrahieren des Hash-Codes
-url = st_javascript("await fetch('').then(r => window.parent.location.href)")
+url = st_javascript("await fetch('').then(r => window.parent.location.href)") 
 hash_code = url.split("/")[-1]
 hash_code = 'diuekwfgbk3rwegb24'  # Temporärer Wert für den Hash-Code
-
+  
 # Erstellen des Supabase-Clients
 client = create_supabase_client()
 
@@ -25,8 +26,6 @@ client.table("Locality").update({"allowed_after_request": True}).eq("hash_code",
 
 # Abrufen der Daten aus der Datenbank
 locality_data, discount_data = fetch_data_from_database(hash_code, client)
-st.write(locality_data)
-st.write(discount_data)
 
 # Extrahieren relevanter Informationen aus den Daten
 locality_id = locality_data["locality_id"].values[0]
@@ -76,9 +75,20 @@ with col2:
     # Liste der Merkzeichen
     disability_marks = ["AG", "B", "BL", "H", "GL", "G", "TB"]
 
+    discount_id_dict = {}
+    option_name_dict = {}
+    discounted_price_dict = {}
+    standard_price_dict = {}
+    companion_price_dict = {}
+    required_disability_degree_dict = {}
+    selected_disability_marks_dict = {}
+
     # Iteration über die Rabattdaten
     for i, row in discount_data.iterrows():
         cols = st.columns(6)
+
+        # Rabatt-ID
+        discount_id_dict[i] = row["discount_id"]
 
         # Extrahieren der ausgewählten Merkzeichen
         selected_marks = []
@@ -88,31 +98,31 @@ with col2:
 
         # Eingabefelder für die Rabattoptionen
         with cols[0]:
-            option_name = st.text_input(r'''$\textsf{\Large Name}$''', value=row["name_of_option"], key=f"name_{i}")
-            if len(option_name) > 50:
+            option_name_dict[i] = st.text_input(r'''$\textsf{\Large Name}$''', value=row["name_of_option"], key=f"name_{i}")
+            if len(option_name_dict[i]) > 50:
                 st.error("Name darf nicht länger als 50 Zeichen sein.")
         with cols[1]:
-            discounted_price = st.number_input(r'''$\textsf{\Large Ermäßigter Preis}$''', value=float(row["discounted_price"]), step=0.5, key=f"price_disc_{i}")
-            if discounted_price < 0:
+            discounted_price_dict[i] = st.number_input(r'''$\textsf{\Large Ermäßigter Preis}$''', value=float(row["discounted_price"]), step=0.5, key=f"price_disc_{i}")
+            if discounted_price_dict[i] < 0:
                 st.error("Ermäßigter Preis muss größer gleich 0 sein.")
         with cols[2]:
-            standard_price = st.number_input(r'''$\textsf{\Large Normalpreis}$''', value=float(row["standard_price"]), step=0.5, key=f"price_norm_{i}")
-            if standard_price < 0:
+            standard_price_dict[i] = st.number_input(r'''$\textsf{\Large Normalpreis}$''', value=float(row["standard_price"]), step=0.5, key=f"price_norm_{i}")
+            if standard_price_dict[i] < 0:
                 st.error("Normalpreis muss größer gleich 0 sein.")
-            if standard_price <= discounted_price:
+            if standard_price_dict[i] <= discounted_price_dict[i]:
                 st.error("Normalpreis muss größer als Ermäßigter Preis sein.")
         with cols[3]:
-            companion_price = st.number_input(r'''$\textsf{\Large Preis Begleitperson}$''', value=float(row["companion_price"]), step=0.5, key=f"price_comp_{i}")
-            if companion_price < 0:
+            companion_price_dict[i] = st.number_input(r'''$\textsf{\Large Preis Begleitperson}$''', value=float(row["companion_price"]), step=0.5, key=f"price_comp_{i}")
+            if companion_price_dict[i] < 0:
                 st.error("Preis Begleitperson muss größer gleich 0 sein.")
-            if companion_price > standard_price:
+            if companion_price_dict[i] > standard_price_dict[i]:
                 st.error("Preis Begleitperson darf nicht über Normalpreis sein.")
         with cols[4]:
-            required_disability_degree = st.number_input(r'''$\textsf{\Large Erforderlicher GDB}$''', value=row["degree_of_disability"], step=10, key=f"gdb_{i}")
-            if required_disability_degree < 20 or required_disability_degree > 100:
+            required_disability_degree_dict[i] = st.number_input(r'''$\textsf{\Large Erforderlicher GDB}$''', value=row["degree_of_disability"], step=10, key=f"gdb_{i}")
+            if required_disability_degree_dict[i] < 20 or required_disability_degree_dict[i] > 100:
                 st.error("Der Grad der Behinderung muss größer gleich 20 sein und darf nicht größer als 100 sein.")
         with cols[5]:
-            selected_disability_marks = st.multiselect(r'''$\textsf{\Large Merkzeichen}$''', disability_marks, key=f"merkzeichen_{i}", default=selected_marks)
+            selected_disability_marks_dict[i] = st.multiselect(r'''$\textsf{\Large Merkzeichen}$''', disability_marks, key=f"merkzeichen_{i}", default=selected_marks)
 
     # Trennlinie
     st.markdown("---")
@@ -132,24 +142,11 @@ with col2:
             unsafe_allow_html=True
         )
 
-        def get_signed_logo_url():
-            possible_exts = ["png", "jpg", "jpeg"]
-            for ext in possible_exts:
-                filename = f"{locality_id}.{ext}"
-                try:
-                    res = client.storage.from_(BUCKET_NAME).create_signed_url(
-                        filename, expires_in=3600  # 1 Stunde gültig
-                    ).json()
-                    if "signedURL" in res:
-                        return res["signedURL"]
-                except:
-                    pass
-            return None
-
-        existing_logo_url = get_signed_logo_url()
-
         BUCKET_NAME = "localitylogos"
 
+        existing_logo_url = get_signed_logo_url(locality_id, client, BUCKET_NAME)
+
+    
         # 📤 Upload-Feld
         logo_upload = st.file_uploader(
             r'''$\textsf{\Large 1. Logo hochladen \textit{(optional)}}$''',
@@ -206,6 +203,38 @@ with col2:
 
         background_upload = st.file_uploader(r'''$\textsf{\Large 2. Hintergrundbild hochladen \textit{(optional)}}$''', type=["png", "jpg", "jpeg"], key="bg")
 
+        # 📦 Upload-Logik für Hintergrundbil
+        BUCKET_NAME_BG = "localitybackground"
+        if background_upload is not None:
+            file_ext = background_upload.name.split('.')[-1]
+            filename = f"{locality_id}_background.{file_ext}"
+            file_bytes = background_upload.read()
+
+            # Alte Dateien löschen
+            try:
+                existing_files = client.storage.from_(BUCKET_NAME_BG).list()
+                for file in existing_files:
+                    if file["name"].startswith(locality_id) and "background" in file["name"]:
+                        delete_res = client.storage.from_(BUCKET_NAME_BG).remove([file["name"]])
+                        if delete_res[0].get("error"):
+                            st.warning("Fehler beim Löschen der alten Datei.")
+            except Exception as e:
+                st.warning(f"Fehler beim Löschen der Datei: {e}")
+
+            # Upload
+            upload_res = client.storage.from_(BUCKET_NAME_BG).upload(
+                filename, file_bytes, {"content-type": background_upload.type}
+            ).json()
+
+            if upload_res.get("error") is None:
+                signed_url = client.storage.from_(BUCKET_NAME_BG).create_signed_url(filename, 3600)
+                if "signedURL" in signed_url:
+                    st.image(signed_url["signedURL"], caption="Hochgeladenes Hintergrundbild", width=250)
+                else:
+                    st.warning("Upload ok, aber konnte keine URL erzeugen.")
+            else:
+                st.error(f"Fehler beim Upload: {upload_res['error']['message']}")
+
         st.markdown(
             """
             <style>
@@ -217,10 +246,6 @@ with col2:
             unsafe_allow_html=True
         )
 
-        additional_images = st.file_uploader(r'''$\textsf{\Large 3. Weitere Bilder hochladen \textit{(max. 3, optional)}}$''', type=["png", "jpg", "jpeg"], accept_multiple_files=True, key="more_imgs")
-
-        if additional_images and len(additional_images) > 3:
-            st.warning("Bitte nicht mehr als 3 Bilder hochladen.")
 
     with col2:
         # Vorschau eines Beispielbildes
@@ -244,7 +269,7 @@ with col2:
         st.error("Der Informationstext muss mindestens 20 Zeichen lang sein.")
     phone_number_input = st.text_area(r'''$\textsf{\Large Telefonnummer \textit{(optional)}}$''', value=phone_number)
     email_input = st.text_area(r'''$\textsf{\Large E-Mail-Adresse \textit{(optional)}}$''', value=email)
-    st.checkbox(r'''$\textsf{\Large Barrierefrei}$''', value=is_wheelchair_accessible, key="barrier_free")
+    is_barrier_free = st.checkbox(r'''$\textsf{\Large Barrierefrei}$''', value=is_wheelchair_accessible, key="barrier_free")
 
     # Speichern-Button
     col1, col2, col3 = st.columns([5, 3, 5])
@@ -260,4 +285,34 @@ with col2:
             unsafe_allow_html=True
         )
         if st.button(r'''$\textsf{\Large Daten speichern ✅}$''', key="save_button", help="Klicken Sie hier, um die Daten zu speichern"):
+
+
+            # Speichern der Daten in der Datenbank
+            client.table("Locality").update({
+                "name": locality_name_input,
+                "description": description_text if description_text else None,
+                "email_from_website": email_input,
+                "phone_number": phone_number_input,
+                "wheelchair_accessible": is_barrier_free
+            }).eq("hash_code", str(hash_code)).execute()
+            for i, row in discount_data.iterrows():
+                print("Updating discount ID:", discount_id_dict[i])
+                print("Row filter (was):", row['discount_id'])
+
+                client.table("LocalityDiscount").update({
+                    "discount_id": discount_id_dict[i],
+                    "name_of_option": option_name_dict[i],
+                    "discounted_price": discounted_price_dict[i],
+                    "standard_price": standard_price_dict[i],
+                    "companion_price": companion_price_dict[i],
+                    "degree_of_disability": required_disability_degree_dict[i],
+                    "mark_ag": 1 if "AG" in selected_disability_marks_dict[i] else 0,
+                    "mark_b": 1 if "B" in selected_disability_marks_dict[i] else 0,
+                    "mark_bl": 1 if "BL" in selected_disability_marks_dict[i] else 0,
+                    "mark_h": 1 if "H" in selected_disability_marks_dict[i] else 0,
+                    "mark_gl": 1 if "GL" in selected_disability_marks_dict[i] else 0,
+                    "mark_g": 1 if "G" in selected_disability_marks_dict[i] else 0,
+                    "mark_tb": 1 if "TB" in selected_disability_marks_dict[i] else 0,
+                    "confirmed_by_locality": True
+                }).eq("discount_id", int(discount_id_dict[i])).execute()
             st.success("Daten wurden gespeichert!")
