@@ -34,6 +34,11 @@ email = locality_data["email_from_website"].values[0] if locality_data["email_fr
 phone_number = locality_data["phone_number"].values[0]
 is_wheelchair_accessible = locality_data["wheelchair_accessible"].values[0]
 
+client.table("LocalityBackup").upsert({
+    "locality_id": locality_id,
+    "last_allowed_at": timestamp
+}).execute()
+
 # Laden des Header-Logos
 header_logo = Image.open("media/HeaderDanke.png")
 
