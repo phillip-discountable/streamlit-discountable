@@ -82,7 +82,7 @@ def decline(client, hash_code):
                 }}
                 </style>
 
-                <a href="https://welcome.discountable.info/accept/{hash_code}" style="text-decoration: none;">
+                <a href="https://welcome.discountable.info/accept#{hash_code}" style="text-decoration: none;">
                     <div class="link-button">
                         Meinung ändern
                     </div>
