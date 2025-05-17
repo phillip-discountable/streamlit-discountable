@@ -22,11 +22,11 @@ hash_code = 'diuekwfgbk3rwegb24'  # Temporärer Wert für den Hash-Code
 # Erstellen des Supabase-Clients
 client = create_supabase_client()
 
-decision = 'decline'
 
-if decision == "accept":
+
+if "accept" in decision:
     accept(hash_code, client)
     
-elif decision == "decline":
+elif "decline" in decision:
     # Laden des Header-Logos
     decline(client, hash_code)
