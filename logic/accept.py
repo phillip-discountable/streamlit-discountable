@@ -34,27 +34,27 @@ def accept(hash_code, client):
     header_logo = Image.open("media/HeaderDanke.png")
 
     # Anzeige des Header-Bildes
-    col1, col2, col3 = st.columns([4, 6, 4])
+    col1, col2, col3 = st.columns([3, 6, 3])
     with col2:
         st.image(header_logo, width=600, use_container_width=True)
 
     # Begrüßungstext
     st.markdown("""
         <div style='text-align: center; margin-top: 20px;'>
-            <h1 style='font-size: 55px;'>Vielen Dank für Ihre Unterstützung!</h1>
-            <p style='font-size: 35px; max-width: 800px; margin: 0 auto;'>
-                Ihre Hilfe macht dieses Projekt nur möglich.
+            <h1 style='font-size: 45px;'>Vielen Dank für Ihre Unterstützung!</h1>
+            <p style='font-size: 30px; max-width: 800px; margin: 0 auto;'>
+                Ihre Hilfe macht dieses Projekt möglich.
             </p>
-            <p style='font-size: 26px; max-width: 1400px; margin: 0 auto; padding-top: 60px; padding-bottom: 60px;'>
+            <p style='font-size: 22px; max-width: 1400px; margin: 0 auto; padding-top: 60px; padding-bottom: 60px;'>
                 Unten können Sie einsehen, welche Informationen wir in unsere App integrieren werden und diese gegebenenfalls anpassen.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
     # Anzeige der Rabattoptionen
-    col1, col2, col3 = st.columns([1, 6, 1])
+    col1, col2, col3 = st.columns([1, 9, 1])
     with col2:
-        st.title("🎯 Identifizierte Rabattoptionen")
+        st.title("Identifizierte Rabattoptionen")
 
         # Styling für Eingabefelder
         st.markdown(
@@ -94,35 +94,35 @@ def accept(hash_code, client):
 
             # Eingabefelder für die Rabattoptionen
             with cols[0]:
-                option_name_dict[i] = st.text_input(r'''$\textsf{\Large Name}$''', value=row["name_of_option"], key=f"name_{i}")
+                option_name_dict[i] = st.text_input(r'''$\textsf{Name}$''', value=row["name_of_option"], key=f"name_{i}")
                 if len(option_name_dict[i]) > 50:
                     st.error("Name darf nicht länger als 50 Zeichen sein.")
             with cols[1]:
-                discounted_price_dict[i] = st.number_input(r'''$\textsf{\Large Ermäßigter Preis}$''', value=float(row["discounted_price"]), step=0.5, key=f"price_disc_{i}")
+                discounted_price_dict[i] = st.number_input(r'''$\textsf{Ermäßigter Preis}$''', value=float(row["discounted_price"]), step=0.5, key=f"price_disc_{i}")
                 if discounted_price_dict[i] < 0:
                     st.error("Ermäßigter Preis muss größer gleich 0 sein.")
             with cols[2]:
-                standard_price_dict[i] = st.number_input(r'''$\textsf{\Large Normalpreis}$''', value=float(row["standard_price"]), step=0.5, key=f"price_norm_{i}")
+                standard_price_dict[i] = st.number_input(r'''$\textsf{Normalpreis}$''', value=float(row["standard_price"]), step=0.5, key=f"price_norm_{i}")
                 if standard_price_dict[i] < 0:
                     st.error("Normalpreis muss größer gleich 0 sein.")
                 if standard_price_dict[i] <= discounted_price_dict[i]:
                     st.error("Normalpreis muss größer als Ermäßigter Preis sein.")
             with cols[3]:
-                companion_price_dict[i] = st.number_input(r'''$\textsf{\Large Preis Begleitperson}$''', value=float(row["companion_price"]), step=0.5, key=f"price_comp_{i}")
+                companion_price_dict[i] = st.number_input(r'''$\textsf{Preis Begleitperson}$''', value=float(row["companion_price"]), step=0.5, key=f"price_comp_{i}")
                 if companion_price_dict[i] < 0:
                     st.error("Preis Begleitperson muss größer gleich 0 sein.")
                 if companion_price_dict[i] > standard_price_dict[i]:
                     st.error("Preis Begleitperson darf nicht über Normalpreis sein.")
             with cols[4]:
-                required_disability_degree_dict[i] = st.number_input(r'''$\textsf{\Large Erforderlicher GDB}$''', value=row["degree_of_disability"], step=10, key=f"gdb_{i}")
+                required_disability_degree_dict[i] = st.number_input(r'''$\textsf{Erforderlicher GDB}$''', value=row["degree_of_disability"], step=10, key=f"gdb_{i}")
                 if required_disability_degree_dict[i] < 20 or required_disability_degree_dict[i] > 100:
                     st.error("Der Grad der Behinderung muss größer gleich 20 sein und darf nicht größer als 100 sein.")
             with cols[5]:
-                selected_disability_marks_dict[i] = st.multiselect(r'''$\textsf{\Large Merkzeichen}$''', disability_marks, key=f"merkzeichen_{i}", default=selected_marks)
+                selected_disability_marks_dict[i] = st.multiselect(r'''$\textsf{Merkzeichen}$''', disability_marks, key=f"merkzeichen_{i}", default=selected_marks)
 
         # Trennlinie
         st.markdown("---")
-        st.title("🖼️ Medien")
+        st.title("Medien")
 
         # Medien-Upload-Bereich
         col1, col2 = st.columns([1, 1])
@@ -145,7 +145,7 @@ def accept(hash_code, client):
         
             # 📤 Upload-Feld
             logo_upload = st.file_uploader(
-                r'''$\textsf{\Large 1. Logo hochladen \textit{(optional)}}$''',
+                r'''$\textsf{Logo hochladen \textit{(optional)}}$''',
                 type=["png", "jpg", "jpeg"],
                 key="logo"
             )
@@ -197,7 +197,7 @@ def accept(hash_code, client):
                 unsafe_allow_html=True
             )
 
-            background_upload = st.file_uploader(r'''$\textsf{\Large 2. Hintergrundbild hochladen \textit{(optional)}}$''', type=["png", "jpg", "jpeg"], key="bg")
+            background_upload = st.file_uploader(r'''$\textsf{Hintergrundbild hochladen \textit{(optional)}}$''', type=["png", "jpg", "jpeg"], key="bg")
 
             # 📦 Upload-Logik für Hintergrundbil
             BUCKET_NAME_BG = "localitybackground"
@@ -250,25 +250,25 @@ def accept(hash_code, client):
 
         # Trennlinie
         st.markdown("---")
-        st.title("ℹ️ Weitere Informationen")
+        st.title("Weitere Informationen")
 
         # Eingabefelder für weitere Informationen
-        locality_name_input = st.text_area(r'''$\textsf{\Large Name der Lokalität}$''', value=locality_name)
+        locality_name_input = st.text_area(r'''$\textsf{Name der Lokalität}$''', value=locality_name)
         if len(locality_name_input) > 30:
             st.error("Der Name darf nicht länger als 30 Zeichen sein.")
         if len(locality_name_input) < 3:
             st.error("Der Name muss mindestens 3 Zeichen lang sein.")
-        description_text = st.text_area(r'''$\textsf{\Large Beschreibungstext \textit{(max 300 Zeichen, optional)}}$''')
+        description_text = st.text_area(r'''$\textsf{Beschreibungstext \textit{(max 300 Zeichen, optional)}}$''')
         if len(description_text) > 300:
             st.error("Der Informationstext darf nicht länger als 300 Zeichen sein.")
         if len(description_text) < 20 and len(description_text) > 0:
             st.error("Der Informationstext muss mindestens 20 Zeichen lang sein.")
-        phone_number_input = st.text_area(r'''$\textsf{\Large Telefonnummer \textit{(optional)}}$''', value=phone_number)
-        email_input = st.text_area(r'''$\textsf{\Large E-Mail-Adresse \textit{(optional)}}$''', value=email)
-        is_barrier_free = st.checkbox(r'''$\textsf{\Large Barrierefrei}$''', value=is_wheelchair_accessible, key="barrier_free")
+        phone_number_input = st.text_area(r'''$\textsf{Telefonnummer \textit{(optional)}}$''', value=phone_number)
+        email_input = st.text_area(r'''$\textsf{E-Mail-Adresse \textit{(optional)}}$''', value=email)
+        is_barrier_free = st.checkbox(r'''$\textsf{Barrierefrei}$''', value=is_wheelchair_accessible, key="barrier_free")
 
         # Speichern-Button
-        col1, col2, col3 = st.columns([5, 3, 5])
+        col1, col2, col3 = st.columns([5, 2, 5])
         with col2:
             st.markdown(
                 """
@@ -280,7 +280,7 @@ def accept(hash_code, client):
                 """,
                 unsafe_allow_html=True
             )
-            if st.button(r'''$\textsf{\Huge Daten speichern ✅}$''', key="save_button", help="Klicken Sie hier, um die Daten zu speichern"):
+            if st.button(r'''$\textsf{\Large Daten speichern}$''', key="save_button", help="Klicken Sie hier, um die Daten zu speichern"):
 
 
                 # Speichern der Daten in der Datenbank
