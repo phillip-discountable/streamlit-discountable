@@ -1,12 +1,8 @@
 import streamlit as st
-from PIL import Image
-from datetime import datetime   
-from functions.fetch_data_from_database import fetch_data_from_database
 from functions.create_supabase_client import create_supabase_client
 from dotenv import load_dotenv
 load_dotenv()
 from streamlit_javascript import st_javascript
-from functions.get_signed_logo_url import get_signed_logo_url
 from logic.accept import accept
 from logic.decline import decline
 import time

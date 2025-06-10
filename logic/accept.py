@@ -5,6 +5,7 @@ from functions.fetch_data_from_database import fetch_data_from_database
 from dotenv import load_dotenv
 load_dotenv()
 from streamlit_javascript import st_javascript
+from logic.send_telegram_message import send_telegram_message
 from functions.get_signed_logo_url import get_signed_logo_url
 
 def accept(hash_code, client):
@@ -14,9 +15,9 @@ def accept(hash_code, client):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     client.table("Locality").update({"last_allowed_at": timestamp}).eq("hash_code", str(hash_code)).execute()
     client.table("Locality").update({"allowed_after_request": True}).eq("hash_code", str(hash_code)).execute()
-
+    
     # Abrufen der Daten aus der Datenbank
-    locality_data, discount_data = fetch_data_from_database(hash_code, client)
+    locality_data, discount_data = fetch_data_from_database(hash_code, client, True)
 
     # Extrahieren relevanter Informationen aus den Daten
     locality_id = locality_data["locality_id"].values[0]
@@ -24,6 +25,11 @@ def accept(hash_code, client):
     email = locality_data["email_from_website"].values[0] if locality_data["email_from_website"].values[0] != None else locality_data["email_from_osm"].values[0]
     phone_number = locality_data["phone_number"].values[0]
     is_wheelchair_accessible = locality_data["wheelchair_accessible"].values[0]
+
+    try:
+        send_telegram_message(f"AKZEPTIERT: {locality_name}")
+    except Exception as e:
+        print("Fehler beim Senden der Telegram-Nachricht:", e)
 
     client.table("LocalityBackup").upsert({
         "hash_code": locality_id,
@@ -108,7 +114,9 @@ def accept(hash_code, client):
                 if standard_price_dict[i] <= discounted_price_dict[i]:
                     st.error("Normalpreis muss größer als Ermäßigter Preis sein.")
             with cols[3]:
-                companion_price_dict[i] = st.number_input(r'''$\textsf{Preis Begleitperson}$''', value=float(row["companion_price"]), step=0.5, key=f"price_comp_{i}")
+                companion_price = float(row["companion_price"]) if float(row["companion_price"]) != -1 else float(row["standard_price"])
+
+                companion_price_dict[i] = st.number_input(r'''$\textsf{Preis Begleitperson}$''', value=companion_price, step=0.5, key=f"price_comp_{i}")
                 if companion_price_dict[i] < 0:
                     st.error("Preis Begleitperson muss größer gleich 0 sein.")
                 if companion_price_dict[i] > standard_price_dict[i]:

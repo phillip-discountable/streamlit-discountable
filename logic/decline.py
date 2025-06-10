@@ -2,6 +2,8 @@ import streamlit as st
 from PIL import Image
 from dotenv import load_dotenv
 from datetime import datetime
+from logic.send_telegram_message import send_telegram_message
+from functions.fetch_data_from_database import fetch_data_from_database
 load_dotenv()
 
 
@@ -9,8 +11,16 @@ def decline(client, hash_code):
 
     header_logo = Image.open("media/ablehnung.png")
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    locality_data = fetch_data_from_database(hash_code, client, False)
 
+    locality_name = locality_data["name"].values[0]
+
+    try:
+        send_telegram_message(f"ABGELEHNT: {locality_name}")
+    except Exception as e:
+        print("Fehler beim Senden der Telegram-Nachricht:", e)
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     client.table("Locality").update({"allowed_after_request": False, "last_disallowed_at": timestamp}).eq("hash_code", hash_code).execute()
     client.table("Locality").update({"last_disallowed_at": timestamp}).eq("hash_code", hash_code).execute()

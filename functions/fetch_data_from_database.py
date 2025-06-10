@@ -1,11 +1,14 @@
 
 import pandas as pd
 
-def fetch_data_from_database(url_path, supabase):
+def fetch_data_from_database(url_path, supabase, has_accepted):
 
     response = supabase.table('Locality').select("locality_id", "name", "email_from_osm", "email_from_website", "phone_number", "wheelchair_accessible").eq("hash_code", url_path).execute()
 
     locality_df = pd.DataFrame(response.data)
+
+    if has_accepted == False:
+        return locality_df
 
     locality_id = locality_df["locality_id"].values[0]
 

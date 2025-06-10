@@ -4,3 +4,5 @@ python-dotenv>=1.0.0
 streamlit-javascript>=0.1.5
 pandas>=2.0.0
 supabase>=1.0.3
+requests
+python-telegram-bot
